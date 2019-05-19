@@ -1,4 +1,4 @@
-import React, { useState, useCallback, memo, useEffect, useRef, cloneElement } from 'react';
+import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import './App.css';
 import { getYearMonthDay, isSameMonth, isSameDay } from './utils';
 
@@ -19,11 +19,19 @@ const DatePicker: React.FC<TestProps> = ({ value = "", onChange = () => { } }) =
   } else {
     initialDate = new Date();
   }
-  console.log("render -------");
-
   const [date, setDate] = useState<Date>(initialDate);
   const [contentVisible, setContentVisible] = useState<boolean>(false);
   const wrapper = useRef<HTMLDivElement>(null);
+  const { year, month, day } = getYearMonthDay(date.getTime());
+  const [currentMonthFirstDay, setCurrentMonthFirstDay] = useState<Date>(new Date(year, month, 1));
+  const { year: chosedYear, month: chosedMonth } = getYearMonthDay(currentMonthFirstDay.getTime());
+  const dayOfCurrentMonthFirstDay = currentMonthFirstDay.getDay();
+  const startDay = new Date(currentMonthFirstDay.getTime() - dayOfCurrentMonthFirstDay * 1000 * 60 * 60 * 24);
+  const dates: Date[] = [];
+  for (let index = 0; index < 42; index++) {
+    dates.push(new Date(startDay.getTime() + 1000 * 60 * 60 * 24 * index));
+  }
+
   const openContent = useCallback(
     () => setContentVisible(true),
     []
@@ -50,6 +58,54 @@ const DatePicker: React.FC<TestProps> = ({ value = "", onChange = () => { } }) =
       setContentVisible(false);
     },
     [date]
+  );
+  const prevMonthHandler = useCallback(
+    () => {
+      setCurrentMonthFirstDay(value => {
+        let { year, month } = getYearMonthDay(value.getTime());
+        if (month === 0) {
+          month = 11;
+          year--;
+        } else {
+          month--;
+        }
+        return new Date(year, month, 1)
+      })
+    },
+    []
+  );
+  const nextMonthHandler = useCallback(
+    () => {
+      setCurrentMonthFirstDay(value => {
+        let { year, month } = getYearMonthDay(value.getTime());
+        if (month === 11) {
+          month = 0;
+          year++;
+        } else {
+          month++;
+        };
+        return new Date(year, month, 1);
+      })
+    },
+    []
+  );
+  const prevYearhandler = useCallback(
+    () => {
+      setCurrentMonthFirstDay(value => {
+        let { year, month } = getYearMonthDay(value.getTime());
+        return new Date(--year, month, 1)
+      })
+    },
+    []
+  );
+  const nextYearHandler = useCallback(
+    () => {
+      setCurrentMonthFirstDay(value => {
+        let { year, month } = getYearMonthDay(value.getTime());
+        return new Date(++year, month, 1)
+      })
+    },
+    []
   )
   useEffect(
     () => {
@@ -60,17 +116,7 @@ const DatePicker: React.FC<TestProps> = ({ value = "", onChange = () => { } }) =
     },
     []
   )
-  const { year, month, day } = getYearMonthDay(date.getTime());
-  console.log('month', month);
 
-  const currentMonthFirstDay = new Date(year, month, 1);
-  const dayOfCurrentMonthFirstDay = currentMonthFirstDay.getDay();
-  console.log(dayOfCurrentMonthFirstDay);
-  const startDay = new Date(currentMonthFirstDay.getTime() - dayOfCurrentMonthFirstDay * 1000 * 60 * 60 * 24);
-  const dates: Date[] = [];
-  for (let index = 0; index < 42; index++) {
-    dates.push(new Date(startDay.getTime() + 1000 * 60 * 60 * 24 * index));
-  }
   return (
     <div ref={wrapper}>
       <input type="text" value={`${year} - ${month + 1} - ${day}`} onFocus={openContent} />
@@ -78,11 +124,11 @@ const DatePicker: React.FC<TestProps> = ({ value = "", onChange = () => { } }) =
         contentVisible && (
           <div className="content">
             <div className="header">
-              <span>&lt;</span>
-              <span>&lt; &lt;</span>
-              <span></span>
-              <span>&gt;</span>
-              <span>&gt; &gt;</span>
+              <span onClick={prevYearhandler}>&lt; &lt;</span>
+              <span onClick={prevMonthHandler}>&lt;</span>
+              <span>{`${chosedYear} - ${chosedMonth + 1}`}</span>
+              <span onClick={nextMonthHandler}>&gt;</span>
+              <span onClick={nextYearHandler}>&gt; &gt;</span>
             </div>
             <div className="row">
               {
@@ -99,10 +145,10 @@ const DatePicker: React.FC<TestProps> = ({ value = "", onChange = () => { } }) =
                       {
                         ary7.map((__, idx) => {
                           const num = index * 7 + idx;
-                          const curDate = dates[num]
+                          const curDate = dates[num];
                           return (
                             <span
-                              className={`item${isSameMonth(curDate, currentMonthFirstDay) ? " bold" : ""}${isSameDay(curDate, new Date()) ? " today" : ""}`}
+                              className={`item${isSameMonth(curDate, currentMonthFirstDay) ? " bold" : ""}${isSameDay(curDate, new Date()) ? " today" : ""}${isSameDay(curDate, date) ? " chosed" : ""}`}
                               onClick={() => dateClickHandler(curDate)}
                               key={num}
                             >

@@ -44,6 +44,8 @@
   display: flex;
   justify-content: space-around;
   align-items: center;
+  background-color: #111;
+  color: #fff;
 }
 
 .row{
@@ -65,6 +67,11 @@
 .item.bold{
   color: #111;
   font-weight: bold;
+}
+
+.item.chosed{
+  background-color: #111;
+  color: #fff;
 }
 
 .item:hover{
