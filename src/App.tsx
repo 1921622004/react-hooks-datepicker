@@ -13,7 +13,7 @@ interface TestProps {
 interface State {
 }
 
-const Test: React.FC<TestProps> = memo(({ value = Date.now(), onChange }) => {
+const Test: React.FC<TestProps> = memo(({ value = Date.now(), onChange = () => {} }) => {
   console.log("render -------");
   const [date, setDate] = useState<Date>(new Date(value));
   const [contentVisible, setContentVisible] = useState<boolean>(false);
@@ -35,6 +35,15 @@ const Test: React.FC<TestProps> = memo(({ value = Date.now(), onChange }) => {
       }
     },
     []
+  );
+  const dateClickHandler = useCallback(
+    (date:Date) => {
+      setDate(date);
+      const { year, month, day } = getYearMonthDay(date.getTime());
+      onChange(`${year}-${month}-${day}`);
+      setContentVisible(false);
+    },
+    [date]
   )
   useEffect(
     () => {
@@ -56,7 +65,7 @@ const Test: React.FC<TestProps> = memo(({ value = Date.now(), onChange }) => {
   }
   return (
     <div ref={wrapper}>
-      <input type="text" value={`${year} - ${month} - ${day}`} onFocus={openContent} />
+      <input type="text" value={`${year} - ${month + 1} - ${day}`} onFocus={openContent} />
       {
         contentVisible && (
           <div>
@@ -75,11 +84,9 @@ const Test: React.FC<TestProps> = memo(({ value = Date.now(), onChange }) => {
                       {
                         ary7.map((__, idx) => {
                           const num = index * 7 + idx;
-                          console.log(num);
-                          
                           const curDate = dates[num]
                           return (
-                            <span>{curDate.getDate()}</span>
+                            <span onClick={() => dateClickHandler(curDate)}>{curDate.getDate()}</span>
                           )
                         })
                       }
@@ -99,7 +106,7 @@ const App: React.FC = () => {
 
   return (
     <>
-      <Test />
+      <Test onChange={(val) => console.log(val)}/>
     </>
   );
 }
