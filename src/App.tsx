@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import './App.css';
-import { getYearMonthDay, isSameMonth, isSameDay } from './utils';
+import { getYearMonthDay, isSameMonth, isSameDay, getDateFromString } from './utils';
 
 const ary7 = new Array(7).fill("");
 const ary6 = new Array(6).fill("");
@@ -14,12 +14,13 @@ interface TestProps {
 const DatePicker: React.FC<TestProps> = ({ value = "", onChange = () => { } }) => {
   let initialDate: Date;
   if (value) {
-    let [year, month, day] = value.split('-');
-    initialDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    initialDate = getDateFromString(value);
   } else {
     initialDate = new Date();
-  }
+  };
   const [date, setDate] = useState<Date>(initialDate);
+  const prevValue = useRef<string>(value);
+
   const [contentVisible, setContentVisible] = useState<boolean>(false);
   const wrapper = useRef<HTMLDivElement>(null);
   const { year, month, day } = getYearMonthDay(date.getTime());
@@ -106,7 +107,8 @@ const DatePicker: React.FC<TestProps> = ({ value = "", onChange = () => { } }) =
       })
     },
     []
-  )
+  );
+
   useEffect(
     () => {
       window.addEventListener("click", windowClickhandler);
@@ -115,10 +117,21 @@ const DatePicker: React.FC<TestProps> = ({ value = "", onChange = () => { } }) =
       }
     },
     []
+  );
+  useEffect(
+    () => {
+      if (prevValue.current !== value) {
+        let newDate = value ? getDateFromString(value) : new Date();
+        setDate(newDate);
+        const { year, month } = getYearMonthDay(newDate.getTime());
+        setCurrentMonthFirstDay(new Date(year, month, 1))
+      }
+    },
+    [value]
   )
 
   return (
-    <div ref={wrapper}>
+    <div ref={wrapper} className="wrapper">
       <input type="text" value={`${year} - ${month + 1} - ${day}`} onFocus={openContent} />
       {
         contentVisible && (
@@ -170,10 +183,21 @@ const DatePicker: React.FC<TestProps> = ({ value = "", onChange = () => { } }) =
 };
 
 const App: React.FC = () => {
-
+  const [value, setValue] = useState<string>("2019-4-10");
+  useEffect(
+    () => {
+      const timer = setTimeout(() => {
+        setValue("2019-2-20");
+      }, 1000);
+      return () => {
+        clearTimeout(timer)
+      }
+    },
+    []
+  )
   return (
     <>
-      <DatePicker value={"2019-4-10"} onChange={(val) => console.log(val)} />
+      <DatePicker value={value} onChange={(val) => console.log(val)} />
     </>
   );
 }

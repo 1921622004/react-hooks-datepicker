@@ -32,6 +32,10 @@
   }
 }
 
+.wrapper{
+  display: inline-block;
+}
+
 .content{
   height: 320px;
   width: 280px;
