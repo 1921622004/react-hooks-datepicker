@@ -4,16 +4,24 @@ import { getYearMonthDay, isSameMonth, isSameDay } from './utils';
 
 const ary7 = new Array(7).fill("");
 const ary6 = new Array(6).fill("");
-const strAry = ["日","一","二","三","四","五","六"];
+const strAry = ["日", "一", "二", "三", "四", "五", "六"];
 
 interface TestProps {
-  value?: number;
+  value?: string;
   onChange?: (value: string) => void;
 }
 
-const Test: React.FC<TestProps> = memo(({ value = Date.now(), onChange = () => { } }) => {
+const DatePicker: React.FC<TestProps> = ({ value = "", onChange = () => { } }) => {
+  let initialDate: Date;
+  if (value) {
+    let [year, month, day] = value.split('-');
+    initialDate = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+  } else {
+    initialDate = new Date();
+  }
   console.log("render -------");
-  const [date, setDate] = useState<Date>(new Date(value));
+
+  const [date, setDate] = useState<Date>(initialDate);
   const [contentVisible, setContentVisible] = useState<boolean>(false);
   const wrapper = useRef<HTMLDivElement>(null);
   const openContent = useCallback(
@@ -38,7 +46,7 @@ const Test: React.FC<TestProps> = memo(({ value = Date.now(), onChange = () => {
     (date: Date) => {
       setDate(date);
       const { year, month, day } = getYearMonthDay(date.getTime());
-      onChange(`${year}-${month}-${day}`);
+      onChange(`${year}-${month + 1}-${day}`);
       setContentVisible(false);
     },
     [date]
@@ -53,6 +61,8 @@ const Test: React.FC<TestProps> = memo(({ value = Date.now(), onChange = () => {
     []
   )
   const { year, month, day } = getYearMonthDay(date.getTime());
+  console.log('month', month);
+
   const currentMonthFirstDay = new Date(year, month, 1);
   const dayOfCurrentMonthFirstDay = currentMonthFirstDay.getDay();
   console.log(dayOfCurrentMonthFirstDay);
@@ -92,7 +102,7 @@ const Test: React.FC<TestProps> = memo(({ value = Date.now(), onChange = () => {
                           const curDate = dates[num]
                           return (
                             <span
-                              className={`item${isSameMonth(curDate, currentMonthFirstDay) ? " bold": ""}${isSameDay(curDate, new Date()) ? " today" : ""}`}
+                              className={`item${isSameMonth(curDate, currentMonthFirstDay) ? " bold" : ""}${isSameDay(curDate, new Date()) ? " today" : ""}`}
                               onClick={() => dateClickHandler(curDate)}
                               key={num}
                             >
@@ -111,13 +121,13 @@ const Test: React.FC<TestProps> = memo(({ value = Date.now(), onChange = () => {
       }
     </div>
   )
-});
+};
 
 const App: React.FC = () => {
 
   return (
     <>
-      <Test onChange={(val) => console.log(val)} />
+      <DatePicker value={"2019-4-10"} onChange={(val) => console.log(val)} />
     </>
   );
 }
