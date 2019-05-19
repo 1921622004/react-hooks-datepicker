@@ -13,3 +13,11 @@ export const getYearMonthDay = (value: number) => {
         day: date.getDate()
     }    
 }
+
+export const isSameMonth = (a:Date,b:Date):boolean => {
+    return a.getFullYear() === b.getFullYear() && a.getMonth() == b.getMonth()
+} 
+
+export const isSameDay = (a:Date,b:Date):boolean => {
+    return a.getFullYear() === b.getFullYear() && a.getMonth() == b.getMonth() && a.getDate() == b.getDate()
+}

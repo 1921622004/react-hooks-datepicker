@@ -1,19 +1,17 @@
 import React, { useState, useCallback, memo, useEffect, useRef, cloneElement } from 'react';
 import './App.css';
-import { getYearMonthDay } from './utils';
+import { getYearMonthDay, isSameMonth, isSameDay } from './utils';
 
 const ary7 = new Array(7).fill("");
 const ary6 = new Array(6).fill("");
+const strAry = ["日","一","二","三","四","五","六"];
 
 interface TestProps {
   value?: number;
   onChange?: (value: string) => void;
 }
 
-interface State {
-}
-
-const Test: React.FC<TestProps> = memo(({ value = Date.now(), onChange = () => {} }) => {
+const Test: React.FC<TestProps> = memo(({ value = Date.now(), onChange = () => { } }) => {
   console.log("render -------");
   const [date, setDate] = useState<Date>(new Date(value));
   const [contentVisible, setContentVisible] = useState<boolean>(false);
@@ -29,7 +27,7 @@ const Test: React.FC<TestProps> = memo(({ value = Date.now(), onChange = () => {
   const windowClickhandler = useCallback(
     (ev: MouseEvent) => {
       let target = ev.target as HTMLElement;
-      if(wrapper.current && wrapper.current.contains(target)) {
+      if (wrapper.current && wrapper.current.contains(target)) {
       } else {
         closeContent();
       }
@@ -37,7 +35,7 @@ const Test: React.FC<TestProps> = memo(({ value = Date.now(), onChange = () => {
     []
   );
   const dateClickHandler = useCallback(
-    (date:Date) => {
+    (date: Date) => {
       setDate(date);
       const { year, month, day } = getYearMonthDay(date.getTime());
       onChange(`${year}-${month}-${day}`);
@@ -47,7 +45,7 @@ const Test: React.FC<TestProps> = memo(({ value = Date.now(), onChange = () => {
   )
   useEffect(
     () => {
-      window.addEventListener("click",windowClickhandler);
+      window.addEventListener("click", windowClickhandler);
       return () => {
         window.removeEventListener('click', windowClickhandler);
       }
@@ -59,7 +57,7 @@ const Test: React.FC<TestProps> = memo(({ value = Date.now(), onChange = () => {
   const dayOfCurrentMonthFirstDay = currentMonthFirstDay.getDay();
   console.log(dayOfCurrentMonthFirstDay);
   const startDay = new Date(currentMonthFirstDay.getTime() - dayOfCurrentMonthFirstDay * 1000 * 60 * 60 * 24);
-  const dates:Date[] = [];
+  const dates: Date[] = [];
   for (let index = 0; index < 42; index++) {
     dates.push(new Date(startDay.getTime() + 1000 * 60 * 60 * 24 * index));
   }
@@ -68,25 +66,38 @@ const Test: React.FC<TestProps> = memo(({ value = Date.now(), onChange = () => {
       <input type="text" value={`${year} - ${month + 1} - ${day}`} onFocus={openContent} />
       {
         contentVisible && (
-          <div>
-            <div>
+          <div className="content">
+            <div className="header">
               <span>&lt;</span>
               <span>&lt; &lt;</span>
               <span></span>
               <span>&gt;</span>
               <span>&gt; &gt;</span>
             </div>
+            <div className="row">
+              {
+                strAry.map((item) => {
+                  return <span className="item">{item}</span>
+                })
+              }
+            </div>
             <div>
               {
                 ary6.map((_, index) => {
                   return (
-                    <div>
+                    <div key={index} className="row">
                       {
                         ary7.map((__, idx) => {
                           const num = index * 7 + idx;
                           const curDate = dates[num]
                           return (
-                            <span onClick={() => dateClickHandler(curDate)}>{curDate.getDate()}</span>
+                            <span
+                              className={`item${isSameMonth(curDate, currentMonthFirstDay) ? " bold": ""}${isSameDay(curDate, new Date()) ? " today" : ""}`}
+                              onClick={() => dateClickHandler(curDate)}
+                              key={num}
+                            >
+                              {curDate.getDate()}
+                            </span>
                           )
                         })
                       }
@@ -106,7 +117,7 @@ const App: React.FC = () => {
 
   return (
     <>
-      <Test onChange={(val) => console.log(val)}/>
+      <Test onChange={(val) => console.log(val)} />
     </>
   );
 }
