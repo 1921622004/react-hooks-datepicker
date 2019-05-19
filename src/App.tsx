@@ -1,4 +1,4 @@
-import React, { useState, useCallback, memo } from 'react';
+import React, { useState, useCallback, memo, useEffect, useRef, cloneElement } from 'react';
 import './App.css';
 import { getYearMonthDay } from './utils';
 
@@ -16,7 +16,35 @@ interface State {
 const Test: React.FC<TestProps> = memo(({ value = Date.now(), onChange }) => {
   console.log("render -------");
   const [date, setDate] = useState<Date>(new Date(value));
-  const [contentVisible, setContentVisible] = useState<boolean>(true);
+  const [contentVisible, setContentVisible] = useState<boolean>(false);
+  const wrapper = useRef<HTMLDivElement>(null);
+  const openContent = useCallback(
+    () => setContentVisible(true),
+    []
+  );
+  const closeContent = useCallback(
+    () => setContentVisible(false),
+    []
+  );
+  const windowClickhandler = useCallback(
+    (ev: MouseEvent) => {
+      let target = ev.target as HTMLElement;
+      if(wrapper.current && wrapper.current.contains(target)) {
+      } else {
+        closeContent();
+      }
+    },
+    []
+  )
+  useEffect(
+    () => {
+      window.addEventListener("click",windowClickhandler);
+      return () => {
+        window.removeEventListener('click', windowClickhandler);
+      }
+    },
+    []
+  )
   const { year, month, day } = getYearMonthDay(date.getTime());
   const currentMonthFirstDay = new Date(year, month, 1);
   const dayOfCurrentMonthFirstDay = currentMonthFirstDay.getDay();
@@ -27,8 +55,8 @@ const Test: React.FC<TestProps> = memo(({ value = Date.now(), onChange }) => {
     dates.push(new Date(startDay.getTime() + 1000 * 60 * 60 * 24 * index));
   }
   return (
-    <div>
-      <input type="text" value={`${year} - ${month} - ${day}`} />
+    <div ref={wrapper}>
+      <input type="text" value={`${year} - ${month} - ${day}`} onFocus={openContent} />
       {
         contentVisible && (
           <div>
